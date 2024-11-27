@@ -1,148 +1,130 @@
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import java.util.concurrent.*;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.concurrent.CountDownLatch;
+import com.example.p2phypercubereplica.peer.MessageRequest;
 
 public class CommunicationTest {
-    private static final String BASE_URL = "http://localhost:%d"; // Base URL for all peers, will use dynamic port.
-    private static final int NUM_PEERS = 8;
-    private static final int[] PEER_PORTS = {8080, 8081, 8082, 8083, 8084, 8085, 8086, 8087};
+
+    private static final String[] PEER_URLS = {
+            "http://localhost:8080", "http://localhost:8081", "http://localhost:8082", "http://localhost:8083",
+            "http://localhost:8084", "http://localhost:8085", "http://localhost:8086", "http://localhost:8087"
+    };
+
+    private static final String[] PEER_IDS = {
+            "peer-1", "peer-2", "peer-3", "peer-4", "peer-5", "peer-6", "peer-7", "peer-8"
+    };
+
+    private static final RestTemplate restTemplate = new RestTemplate();
 
     public static void main(String[] args) throws InterruptedException {
-        // CountDownLatch to make sure all threads finish before printing final output
-        CountDownLatch latch = new CountDownLatch(NUM_PEERS * 30);
+        ExecutorService executorService = Executors.newFixedThreadPool(8);
 
-        // Create and start threads for each peer operation
-        for (int i = 0; i < NUM_PEERS; i++) {
-            int port = PEER_PORTS[i];
-            new Thread(() -> runTestForPeer(port, latch)).start();
+        // Register peers
+        for (int i = 0; i < PEER_IDS.length; i++) {
+            final int peerIndex = i;
+            executorService.submit(() -> registerPeer(peerIndex));
+        }
+
+        // Wait for a moment to ensure all peers are registered
+        TimeUnit.SECONDS.sleep(2);
+
+        // Create topics and simulate interactions
+        for (int i = 0; i < PEER_IDS.length; i++) {
+            final int peerIndex = i;
+            executorService.submit(() -> {
+                createTopic(peerIndex, "topic-" + peerIndex);
+                subscribeToTopic(peerIndex, "topic-" + peerIndex);
+                pushMessage(peerIndex, "topic-" + peerIndex, "Message from peer-" + peerIndex);
+            });
+        }
+
+        // Wait for topic creation and subscriptions to complete
+        TimeUnit.SECONDS.sleep(2);
+
+        // Create replicas
+        for (int i = 0; i < PEER_IDS.length; i++) {
+            final int peerIndex = i;
+            executorService.submit(() -> createReplica(peerIndex, "topic-" + peerIndex));
+        }
+
+        // Wait for replicas to be created
+        TimeUnit.SECONDS.sleep(2);
+
+        // Pull messages and view replicas
+        for (int i = 0; i < PEER_IDS.length; i++) {
+            final int peerIndex = i;
+            executorService.submit(() -> {
+                pullMessages(peerIndex, "topic-" + peerIndex);
+                viewReplica(peerIndex, "topic-" + peerIndex + "_replica");
+            });
+        }
+
+        // Fail nodes and check node statuses
+        for (int i = 0; i < PEER_IDS.length; i++) {
+            final int peerIndex = i;
+            executorService.submit(() -> {
+                failNode(peerIndex);
+                checkNodeStatus(peerIndex);
+            });
         }
 
         // Wait for all threads to complete
-        latch.await();
-        System.out.println("All operations completed successfully.");
+        executorService.shutdown();
+        executorService.awaitTermination(1, TimeUnit.MINUTES);
     }
 
-    private static void runTestForPeer(int port, CountDownLatch latch) {
-        try {
-            // Perform API operations sequentially but on different threads
-            createTopic(port, latch);
-            pushMessage(port, latch);
-            subscribeToTopic(port, latch);
-            pullMessages(port, latch);
-            createReplica(port, latch);
-            viewReplica(port, latch);
-            failNode(port, latch);
-            checkNodeStatus(port, latch);
-            unregisterPeer(port, latch);
-            registerPeer(port, latch);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+    // API Call Methods
+    private static void registerPeer(int peerIndex) {
+        String url = PEER_URLS[peerIndex] + "/indexing/register";
+        String response = restTemplate.postForObject(url, "{\"peerInfo\": \"" + PEER_IDS[peerIndex] + "\"}", String.class);
+        System.out.println("Peer registered: " + PEER_IDS[peerIndex]);
     }
 
-    private static void createTopic(int port, CountDownLatch latch) throws InterruptedException {
-        String url = String.format(BASE_URL + "/peer/createTopic", port);
-        RestTemplate restTemplate = new RestTemplate();
-        String topicName = "topic" + port;
-        HttpEntity<String> request = new HttpEntity<>(topicName);
-        restTemplate.exchange(url, HttpMethod.POST, request, String.class);
-        System.out.println("Topic created under node " + port);
-        latch.countDown();
-        Thread.sleep(100); // Simulate small delay
+    private static void createTopic(int peerIndex, String topicName) {
+        String url = PEER_URLS[peerIndex] + "/peer/createTopic";
+        restTemplate.postForObject(url, "{\"topicName\": \"" + topicName + "\"}", String.class);
+        System.out.println("Topic created under node " + PEER_IDS[peerIndex]);
     }
 
-    private static void pushMessage(int port, CountDownLatch latch) throws InterruptedException {
-        String url = String.format(BASE_URL + "/peer/pushMessage", port);
-        RestTemplate restTemplate = new RestTemplate();
-        String message = "Message from node " + port;
-        HttpEntity<String> request = new HttpEntity<>(message);
-        restTemplate.exchange(url, HttpMethod.POST, request, String.class);
-        System.out.println("Message pushed to topic under node " + port);
-        latch.countDown();
-        Thread.sleep(100); // Simulate small delay
+    private static void subscribeToTopic(int peerIndex, String topicName) {
+        String url = PEER_URLS[peerIndex] + "/peer/subscribe";
+        restTemplate.postForObject(url, "{\"topicName\": \"" + topicName + "\"}", String.class);
+        System.out.println("Subscribed to topic " + topicName + " under node " + PEER_IDS[peerIndex]);
     }
 
-    private static void subscribeToTopic(int port, CountDownLatch latch) throws InterruptedException {
-        String url = String.format(BASE_URL + "/peer/subscribe", port);
-        RestTemplate restTemplate = new RestTemplate();
-        String topicName = "topic" + port;
-        HttpEntity<String> request = new HttpEntity<>(topicName);
-        restTemplate.exchange(url, HttpMethod.POST, request, String.class);
-        System.out.println("Subscribed to topic " + topicName + " under node " + port);
-        latch.countDown();
-        Thread.sleep(100); // Simulate small delay
+    private static void pushMessage(int peerIndex, String topicName, String message) {
+        String url = PEER_URLS[peerIndex] + "/peer/pushMessage";
+        MessageRequest request = new MessageRequest(message, topicName);
+        restTemplate.postForObject(url, request, String.class);
+        System.out.println("Message pushed to topic " + topicName + " under node " + PEER_IDS[peerIndex]);
     }
 
-    private static void pullMessages(int port, CountDownLatch latch) throws InterruptedException {
-        String url = String.format(BASE_URL + "/peer/pullMessages?topicName=topic" + port, port);
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, null, String.class);
-        System.out.println("Messages pulled from topic under node " + port);
-        latch.countDown();
-        Thread.sleep(100); // Simulate small delay
+    private static void createReplica(int peerIndex, String topicName) {
+        String url = PEER_URLS[peerIndex] + "/peer/createReplica";
+        restTemplate.postForObject(url, "{\"topicName\": \"" + topicName + "\"}", String.class);
+        System.out.println("Replica created for node " + PEER_IDS[peerIndex]);
     }
 
-    private static void createReplica(int port, CountDownLatch latch) throws InterruptedException {
-        String url = String.format(BASE_URL + "/peer/createReplica", port);
-        RestTemplate restTemplate = new RestTemplate();
-        String topicName = "topic" + port;
-        HttpEntity<String> request = new HttpEntity<>(topicName);
-        restTemplate.exchange(url, HttpMethod.POST, request, String.class);
-        System.out.println("Replica created for node " + port);
-        latch.countDown();
-        Thread.sleep(100); // Simulate small delay
+    private static void pullMessages(int peerIndex, String topicName) {
+        String url = PEER_URLS[peerIndex] + "/peer/pullMessages?topicName=" + topicName;
+        String response = restTemplate.getForObject(url, String.class);
+        System.out.println("Messages pulled from topic " + topicName + ": " + response);
     }
 
-    private static void viewReplica(int port, CountDownLatch latch) throws InterruptedException {
-        String url = String.format(BASE_URL + "/peer/viewReplica?replicaId=topic" + port + "_replica", port);
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, null, String.class);
-        System.out.println("Viewed replica for topic " + port);
-        latch.countDown();
-        Thread.sleep(100); // Simulate small delay
+    private static void viewReplica(int peerIndex, String replicaId) {
+        String url = PEER_URLS[peerIndex] + "/peer/viewReplica?replicaId=" + replicaId;
+        String response = restTemplate.getForObject(url, String.class);
+        System.out.println("Replica viewed under node " + PEER_IDS[peerIndex] + ": " + response);
     }
 
-    private static void failNode(int port, CountDownLatch latch) throws InterruptedException {
-        String url = String.format(BASE_URL + "/peer/failNode?nodeId=node" + port, port);
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.exchange(url, HttpMethod.POST, null, String.class);
-        System.out.println("Node " + port + " failed");
-        latch.countDown();
-        Thread.sleep(100); // Simulate small delay
+    private static void failNode(int peerIndex) {
+        String url = PEER_URLS[peerIndex] + "/peer/failNode?nodeId=" + PEER_IDS[peerIndex];
+        restTemplate.postForObject(url, null, String.class);
+        System.out.println("Node " + PEER_IDS[peerIndex] + " failed");
     }
 
-    private static void checkNodeStatus(int port, CountDownLatch latch) throws InterruptedException {
-        String url = String.format(BASE_URL + "/peer/checkNodeStatus?nodeId=node" + port, port);
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, null, String.class);
-        System.out.println("Checked status of node " + port);
-        latch.countDown();
-        Thread.sleep(100); // Simulate small delay
-    }
-
-    private static void unregisterPeer(int port, CountDownLatch latch) throws InterruptedException {
-        String url = String.format(BASE_URL + "/indexing/unregister", port);
-        RestTemplate restTemplate = new RestTemplate();
-        String peerId = "peer" + port;
-        HttpEntity<String> request = new HttpEntity<>(peerId);
-        restTemplate.exchange(url, HttpMethod.POST, request, String.class);
-        System.out.println("Unregistered peer " + port);
-        latch.countDown();
-        Thread.sleep(100); // Simulate small delay
-    }
-
-    private static void registerPeer(int port, CountDownLatch latch) throws InterruptedException {
-        String url = String.format(BASE_URL + "/indexing/register", port);
-        RestTemplate restTemplate = new RestTemplate();
-        String peerInfo = "peer" + port;
-        HttpEntity<String> request = new HttpEntity<>(peerInfo);
-        restTemplate.exchange(url, HttpMethod.POST, request, String.class);
-        System.out.println("Registered peer " + port);
-        latch.countDown();
-        Thread.sleep(100); // Simulate small delay
+    private static void checkNodeStatus(int peerIndex) {
+        String url = PEER_URLS[peerIndex] + "/peer/checkNodeStatus?nodeId=" + PEER_IDS[peerIndex];
+        String response = restTemplate.getForObject(url, String.class);
+        System.out.println("Checked status of node " + PEER_IDS[peerIndex] + ": " + response);
     }
 }
