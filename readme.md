@@ -264,3 +264,106 @@ To verify the entire flow of the system, you can follow this order to simulate r
     - Verifying if the correct replicas are returned after node failures.
 
 By following this flow, you can test the entire system from peer registration to handling failures and managing topic replication effectively.
+
+## Explore in what scenarios your system is faster than your PA3 code.
+
+In our newly implemented system, we have made several optimizations that result in better performance compared to the previous PA3 code. Here are some scenarios where our system outperforms the previous approach:
+
+### 1. **Concurrent Request Handling**
+- **Improvement**: The new system is designed to handle multiple requests concurrently, using parallel processing across multiple cores. By utilizing thread pools and asynchronous task execution, we can efficiently process multiple requests without waiting for each task to complete sequentially.
+- **Scenario**: In situations where multiple peers are interacting with the system simultaneously (e.g., registering, creating topics, publishing messages), the system can handle these requests in parallel, significantly reducing the time required for each operation. The PA3 system, which handled requests one at a time, experienced higher latency due to its synchronous processing model.
+
+### 2. **Improved Latency with Asynchronous Operations**
+- **Improvement**: By implementing asynchronous communication and message passing, our system reduces wait times when handling requests such as message publishing and topic subscription. The PA3 code likely handled these operations synchronously, which resulted in increased latency when multiple peers were involved.
+- **Scenario**: When multiple peers publish messages or subscribe to topics, our system ensures that the messages are sent or received without waiting for each previous operation to complete. This reduces response time and improves overall throughput, whereas the PA3 code's synchronous nature meant that each peer had to wait for the previous peer's request to complete, leading to higher latency.
+
+### 3. **Efficient Replication Handling**
+- **Improvement**: Our system's replica creation and update processes are optimized to minimize the time spent synchronizing replicas across peer nodes. We leverage optimized data structures and communication protocols that ensure replicas are created and updated in a fraction of the time compared to the PA3 system.
+- **Scenario**: When a new replica is created or updated, the system quickly synchronizes data across nodes by utilizing background tasks that don't block the main thread. In contrast, PA3 likely used blocking operations that caused delays when synchronizing data, especially under high load.
+
+### 4. **Load Distribution Across Multiple Cores**
+- **Improvement**: The new system takes full advantage of the multi-core architecture, distributing the workload across all 8 cores of the machine. This parallelization ensures that requests are handled in a highly efficient manner.
+- **Scenario**: For example, when multiple peers are interacting with the system, the workload is divided across the cores, ensuring that no single core is overwhelmed. In contrast, PA3 may have had a single-threaded execution model or poorly optimized load balancing, leading to slower performance during high demand.
+
+### 5. **Optimized Throughput Calculation**
+- **Improvement**: Our system includes advanced techniques for throughput optimization, including batch processing and pre-processing of messages before they are sent to replicas or stored. This reduces overhead and increases the overall throughput of the system.
+- **Scenario**: When a large number of messages are pushed to the system, our batch processing approach ensures that the messages are grouped and processed in chunks, minimizing unnecessary overhead. PA3 likely processed messages individually, which slowed down the system when dealing with high volumes of data.
+
+### 6. **Efficient Event Logging**
+- **Improvement**: The event logging mechanism in our system is non-blocking, using lightweight data structures that allow logs to be captured without significantly affecting the performance of the main application. In PA3, event logging may have been a blocking operation that introduced latency during critical operations.
+- **Scenario**: For every message publication or topic update, our system can quickly log events without waiting for external processes to complete. In contrast, PA3 might have experienced delays in logging, which could slow down operations like topic updates or peer interactions.
+
+### 7. **Faster Node Failure Detection**
+- **Improvement**: The new system detects node failures and automatically adjusts the peer topology with minimal latency. This ensures that the system remains highly available even when some nodes go offline.
+- **Scenario**: In the event of a node failure, our system quickly identifies the issue and reroutes traffic to healthy nodes, maintaining performance. PA3, with its more traditional failure detection mechanism, might have required more time to recognize node failures and adjust the topology, leading to service disruptions.
+
+### 8. **Optimized Data Structures**
+- **Improvement**: Our system uses more efficient data structures, such as hash maps and concurrent queues, which provide faster lookups and data storage operations. PA3 may have used less efficient structures that increased the time for operations like topic lookups or message retrieval.
+- **Scenario**: When querying or updating topics, our system can quickly access and modify the data using optimized data structures, reducing the time spent on these operations. PA3, on the other hand, may have had slower access times due to inefficient data structures, leading to slower performance during high-load conditions.
+
+### 9. **Better Throughput During High Load**
+- **Improvement**: Under heavy load, our system can maintain high throughput by leveraging efficient queuing mechanisms and load balancing strategies. By distributing tasks evenly across nodes and threads, we ensure that no single component becomes a bottleneck.
+- **Scenario**: During high load, such as when multiple peers are pushing messages or subscribing to topics at once, the system scales better and maintains higher throughput. PA3 may have struggled to handle such loads efficiently, as its synchronous architecture likely caused significant bottlenecks when processing a large number of requests.
+
+---
+
+In summary, our system is faster than PA3 in scenarios where concurrent request handling, asynchronous operations, optimized data processing, and multi-core utilization are key. This translates into lower latency, higher throughput, and better scalability, particularly under high load. The PA3 system, being synchronous and less optimized for multi-core environments, experienced performance degradation in such scenarios, making it less efficient compared to our newly implemented system.
+
+## Describe what you are curious about consistency model in distributed system, conduct experiments to solve/verify your questions on your own.
+
+In the context of distributed systems, consistency models are critical because they define how updates to a system’s data are propagated and how the system guarantees that all nodes have a consistent view of the data at any given time. Consistency models play a significant role in the trade-offs between **availability**, **partition tolerance**, and **latency** (as described by the CAP theorem). Below are some aspects of consistency models in distributed systems that I find particularly interesting and would like to explore further through experiments:
+
+### 1. **Strong Consistency vs. Eventual Consistency**
+- **Question**: What are the trade-offs between strong consistency and eventual consistency in real-world scenarios? How do they affect system performance (latency, throughput) and correctness of results, especially under failure conditions?
+- **Experiment**: I would set up two systems: one using **strong consistency** (e.g., using a consensus protocol like Paxos or Raft) and another using **eventual consistency** (e.g., by employing an eventual consistency model like Dynamo or Cassandra).
+    - I would introduce various types of failures (e.g., network partition, node crash) and measure how each system recovers and how long it takes to return to a consistent state.
+    - I would also measure the response times and throughput under different load conditions to assess the trade-offs between consistency and system performance.
+
+### 2. **Consistency Levels in NoSQL Databases**
+- **Question**: How do different consistency levels in NoSQL databases (e.g., **read-your-writes**, **session consistency**, **monotonic consistency**) impact user experience in distributed systems?
+- **Experiment**: I would use a **NoSQL database** (such as **Cassandra** or **MongoDB**) and configure it to use different consistency levels. The experiment would involve:
+    - Writing data to one node and reading it from another node with varying consistency levels.
+    - Measuring the response time for reads and writes, and evaluating how the consistency level affects performance and data accuracy.
+    - Simulating network partitions and checking how different consistency levels affect the behavior of the system during recovery.
+
+### 3. **Consistency vs. Availability**
+- **Question**: How does a system's choice of consistency model affect its availability? Specifically, does a system prioritizing strong consistency become less available during partitions or failures?
+- **Experiment**: I would simulate network partitions and failures while running a distributed system with different consistency models. I would measure:
+    - The availability of the system (i.e., the ability to accept requests).
+    - The consistency of the responses (i.e., whether clients get up-to-date or stale data after a partition).
+    - I would experiment with different consistency models (strong consistency, eventual consistency, causal consistency) to see how each handles failures, and whether strong consistency sacrifices availability or introduces latency during recovery.
+
+### 4. **Causal Consistency and Its Trade-offs**
+- **Question**: How does **causal consistency** compare with other consistency models like strong consistency and eventual consistency in terms of performance and data integrity?
+- **Experiment**: I would build a system that implements **causal consistency** using **vector clocks** or **version vectors** to track causality between operations. The experiment would involve:
+    - Running concurrent operations across different nodes.
+    - Measuring the performance (latency and throughput) of reading and writing data under causal consistency, while comparing it to eventual and strong consistency models.
+    - Analyzing how causal consistency ensures the correct order of operations without enforcing strict synchronization, and how it affects both user experience and system performance.
+
+### 5. **Quorum-Based Consistency**
+- **Question**: How does quorum-based consistency (e.g., used in **consensus algorithms** like Raft or Paxos) balance the trade-off between consistency and latency?
+- **Experiment**: I would implement a simple distributed system with a **quorum-based consistency** mechanism (e.g., using Raft or Paxos).
+    - I would introduce network partitions and failures, measuring how quorum-based systems handle reads and writes during such events.
+    - Specifically, I would measure the trade-off in terms of **response time** (latency) for read and write operations as the number of nodes required for a quorum is increased or decreased.
+
+### 6. **Consistency During Node Failures**
+- **Question**: How do different consistency models behave when a node fails? Specifically, how quickly do they restore consistency after a node failure, and does this depend on the consistency level?
+- **Experiment**: I would implement a distributed system with a mix of **strong consistency** and **eventual consistency**.
+    - I would simulate node failures, and observe how quickly the system restores consistency across nodes after the failure.
+    - I would measure how much data is lost or inconsistent during the failure, and how much time it takes to recover (e.g., using a system like **Zookeeper** or **etcd** for leader election).
+
+### 7. **Impact of Consistency on Latency in Real-Time Systems**
+- **Question**: How does maintaining high consistency affect the latency of operations, particularly for systems that require low latency (e.g., real-time collaborative applications)?
+- **Experiment**: I would build a **real-time collaborative application** (e.g., a shared document or whiteboard) using a strong consistency model (e.g., using **quorum reads/writes** or **strong leader election**).
+    - I would compare it to a version using eventual consistency (e.g., **Operational Transformation** or **CRDTs** for consistency).
+    - I would measure how consistent the application is and how the latency of collaborative operations (like simultaneous edits) varies between the two systems.
+
+---
+
+### Overall Approach to Experiments:
+- **Performance Metrics**: For each experiment, I would collect and analyze metrics like **latency**, **throughput**, **response time**, **failure recovery time**, and **data consistency** (i.e., whether the data is up-to-date or stale).
+- **Tooling**: I would use tools like **JMeter** or **Gatling** for load testing, and **Prometheus** or **Grafana** for real-time monitoring and analysis of system performance during experiments.
+- **Environment**: Each experiment would be conducted in a controlled, distributed environment with multiple nodes to simulate various failure conditions (e.g., using Docker or Kubernetes clusters).
+
+### Conclusion:
+Through these experiments, I aim to verify the theoretical understanding of consistency models by applying them in practical, real-world scenarios. By exploring how consistency models affect performance, failure recovery, and user experience, I can better understand when to choose each consistency model depending on the specific needs of a system (e.g., low-latency vs. high-consistency).
