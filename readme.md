@@ -1,190 +1,191 @@
-Here is the cURL commands for each API, followed by the flow to test all functionalities, categorized by functionality and the order in which to call them:
+### cURL Commands for Each API
 
-cURL Commands for Each API
-IndexingServer APIs
-Register a new peer
+Below are the cURL commands for all the provided APIs. Each cURL command is constructed based on the RESTful endpoints defined in the controllers.
 
-bash
-Copy code
-curl -X POST "http://localhost:8080/index/RegisteringANewPeer" -d "peerId=<peerId>"
-Unregister a peer node
+#### 1. **Indexing Server APIs**
 
-bash
-Copy code
-curl -X POST "http://localhost:8080/index/UnregisterAPeerNode" -d "peerId=<peerId>"
-Update a topic on a node
+- **Register Peer**
+    ```bash
+    curl -X POST http://localhost:8080/indexing/register \
+    -H "Content-Type: application/json" \
+    -d '{"peerInfo": "peer-1"}'
+    ```
+  **Explanation**: Registers a new peer with the provided `peerInfo` (e.g., `"peer-1"`).
 
-bash
-Copy code
-curl -X POST "http://localhost:8080/index/UpdateTopicOnANode" -d "topicName=<topicName>" -d "peerId=<peerId>"
-Query available topics
+- **Unregister Peer**
+    ```bash
+    curl -X POST http://localhost:8080/indexing/unregister \
+    -H "Content-Type: application/json" \
+    -d '{"peerId": "peer-1"}'
+    ```
+  **Explanation**: Unregisters a peer with the provided `peerId` (e.g., `"peer-1"`).
 
-bash
-Copy code
-curl -X GET "http://localhost:8080/index/QueryTopics"
-PeerNodeController APIs
-Publish a message to a topic
+- **Update Topic**
+    ```bash
+    curl -X POST http://localhost:8080/indexing/updateTopic \
+    -H "Content-Type: application/json" \
+    -d '{"topicUpdateInfo": "new-topic-info"}'
+    ```
+  **Explanation**: Updates a topic with new information (e.g., `"new-topic-info"`).
 
-bash
-Copy code
-curl -X POST "http://localhost:8080/peer/PublishMessageToTopic" -d "topicName=<topicName>" -d "message=<message>"
-Initialize a peer node
+- **Query Topic**
+    ```bash
+    curl -X GET "http://localhost:8080/indexing/queryTopic?topicName=myTopic"
+    ```
+  **Explanation**: Queries the system for a topic's details by `topicName` (e.g., `"myTopic"`).
 
-bash
-Copy code
-curl -X POST "http://localhost:8080/peer/InitializePeerNode" -d "peerId=<peerId>"
-Create a topic
+---
 
-bash
-Copy code
-curl -X POST "http://localhost:8080/peer/CreateTopic" -d "topicName=<topicName>"
-Subscribe to a topic
+#### 2. **Peer Node APIs**
 
-bash
-Copy code
-curl -X GET "http://localhost:8080/peer/SubscribeTopic" -d "topicName=<topicName>"
-Pull messages from a topic
+- **Create Topic**
+    ```bash
+    curl -X POST http://localhost:8080/peer/createTopic \
+    -H "Content-Type: application/json" \
+    -d '{"topicName": "topic1"}'
+    ```
+  **Explanation**: Creates a new topic with the specified name (e.g., `"topic1"`).
 
-bash
-Copy code
-curl -X GET "http://localhost:8080/peer/PullMessages" -d "topicName=<topicName>"
-Register a peer with the indexing server
+- **Push Message to Topic**
+    ```bash
+    curl -X POST http://localhost:8080/peer/pushMessage \
+    -H "Content-Type: application/json" \
+    -d '{"message": "Hello World"}'
+    ```
+  **Explanation**: Pushes a message (e.g., `"Hello World"`) to the topic.
 
-bash
-Copy code
-curl -X POST "http://localhost:8080/peer/RegisterPeerWithIndexingServer" -d "peerId=<peerId>"
-Report metrics
+- **Subscribe to Topic**
+    ```bash
+    curl -X POST http://localhost:8080/peer/subscribe \
+    -H "Content-Type: application/json" \
+    -d '{"topicName": "topic1"}'
+    ```
+  **Explanation**: Subscribes the peer to the specified topic (e.g., `"topic1"`).
 
-bash
-Copy code
-curl -X POST "http://localhost:8080/peer/ReportMetrics"
-Get metrics
+- **Pull Messages from Topic**
+    ```bash
+    curl -X GET "http://localhost:8080/peer/pullMessages?topicName=topic1"
+    ```
+  **Explanation**: Pulls messages from the specified topic (e.g., `"topic1"`).
 
-bash
-Copy code
-curl -X GET "http://localhost:8080/peer/GetMetrics"
-Get event logs
+- **Get Event Logs**
+    ```bash
+    curl -X GET http://localhost:8080/peer/eventLogs
+    ```
+  **Explanation**: Retrieves the event logs from the peer.
 
-bash
-Copy code
-curl -X GET "http://localhost:8080/peer/EventLogGETAPI"
-Create a replica for a node
+- **Create Replica**
+    ```bash
+    curl -X POST http://localhost:8080/peer/createReplica \
+    -H "Content-Type: application/json" \
+    -d '{"topicName": "topic1"}'
+    ```
+  **Explanation**: Creates a replica for the specified topic (e.g., `"topic1"`).
 
-bash
-Copy code
-curl -X POST "http://localhost:8080/peer/CreateReplica" -d "nodeName=<nodeName>" -d "replicaName=<replicaName>"
-View replicas of a node
+- **View Replica**
+    ```bash
+    curl -X GET "http://localhost:8080/peer/viewReplica?replicaId=topic1_replica"
+    ```
+  **Explanation**: Views the details of a replica using the `replicaId` (e.g., `"topic1_replica"`).
 
-bash
-Copy code
-curl -X GET "http://localhost:8080/peer/ViewReplicas" -d "nodeName=<nodeName>"
-Fail a node
+- **Fail Node**
+    ```bash
+    curl -X POST "http://localhost:8080/peer/failNode?nodeId=node1"
+    ```
+  **Explanation**: Marks a node as failed with the specified `nodeId` (e.g., `"node1"`).
 
-bash
-Copy code
-curl -X POST "http://localhost:8080/peer/FailNode" -d "nodeName=<nodeName>"
-Check the status of a node
+- **Check Node Status**
+    ```bash
+    curl -X GET "http://localhost:8080/peer/checkNodeStatus?nodeId=node1"
+    ```
+  **Explanation**: Checks the status of a node using the `nodeId` (e.g., `"node1"`).
 
-bash
-Copy code
-curl -X GET "http://localhost:8080/peer/CheckNodeStatus" -d "nodeName=<nodeName>"
-Testing Flow and Verification
-Here’s the order to test and verify each required functionality:
+---
 
-1. Basic Functionality: Topic Management
-   Goal: Verify topics can be created, published to, and messages can be retrieved.
+### Flow to Hit the APIs and Verify All Flows
 
-Steps:
+To verify the entire flow of the system, you can follow this order to simulate registering nodes, creating topics, handling failures, and managing replicas.
 
-Initialize a peer node:
-bash
-Copy code
-curl -X POST "http://localhost:8080/peer/InitializePeerNode" -d "peerId=node1"
-Create a topic on the node:
-bash
-Copy code
-curl -X POST "http://localhost:8080/peer/CreateTopic" -d "topicName=topic1"
-Publish a message to the topic:
-bash
-Copy code
-curl -X POST "http://localhost:8080/peer/PublishMessageToTopic" -d "topicName=topic1" -d "message=HelloWorld"
-Pull the messages from the topic:
-bash
-Copy code
-curl -X GET "http://localhost:8080/peer/PullMessages" -d "topicName=topic1"
-2. Replicated Topics: Performance Optimization & Fault Tolerance
-   Goal: Verify replicas can be created, viewed, and used for fault tolerance.
+#### **Step-by-Step Flow**
 
-Steps:
+1. **Step 1: Register Peers**
+   - Use the `POST /indexing/register` to register one or more peers.
+   - Example:
+       ```bash
+       curl -X POST http://localhost:8080/indexing/register -H "Content-Type: application/json" -d '{"peerInfo": "peer-1"}'
+       curl -X POST http://localhost:8080/indexing/register -H "Content-Type: application/json" -d '{"peerInfo": "peer-2"}'
+       ```
 
-Create a replica for a node:
-bash
-Copy code
-curl -X POST "http://localhost:8080/peer/CreateReplica" -d "nodeName=node1" -d "replicaName=node1-replica"
-View the replicas of the node:
-bash
-Copy code
-curl -X GET "http://localhost:8080/peer/ViewReplicas" -d "nodeName=node1"
-Fail the original node:
-bash
-Copy code
-curl -X POST "http://localhost:8080/peer/FailNode" -d "nodeName=node1"
-Check the status of the failed node:
-bash
-Copy code
-curl -X GET "http://localhost:8080/peer/CheckNodeStatus" -d "nodeName=node1"
-Publish to the replica and retrieve messages:
-Publish:
-bash
-Copy code
-curl -X POST "http://localhost:8080/peer/PublishMessageToTopic" -d "topicName=topic1" -d "message=ReplicaMessage"
-Pull from replica:
-bash
-Copy code
-curl -X GET "http://localhost:8080/peer/PullMessages" -d "topicName=topic1"
-3. Dynamic Topology Configuration
-   Goal: Verify topics can move to the correct nodes dynamically.
+2. **Step 2: Create Topics**
+   - Use `POST /peer/createTopic` to create topics on a peer.
+   - Example:
+       ```bash
+       curl -X POST http://localhost:8080/peer/createTopic -H "Content-Type: application/json" -d '{"topicName": "topic1"}'
+       ```
 
-Steps:
+3. **Step 3: Push Messages to Topics**
+   - Use `POST /peer/pushMessage` to add messages to a topic.
+   - Example:
+       ```bash
+       curl -X POST http://localhost:8080/peer/pushMessage -H "Content-Type: application/json" -d '{"message": "First message for topic1"}'
+       ```
 
-Fail the node where the topic is stored:
-bash
-Copy code
-curl -X POST "http://localhost:8080/peer/FailNode" -d "nodeName=node1"
-Create the topic elsewhere if it does not exist:
-bash
-Copy code
-curl -X POST "http://localhost:8080/peer/CreateTopic" -d "topicName=topic1"
-Bring back the original node:
-bash
-Copy code
-curl -X POST "http://localhost:8080/peer/InitializePeerNode" -d "peerId=node1"
-Verify the original node retrieves topics it missed:
-bash
-Copy code
-curl -X GET "http://localhost:8080/peer/PullMessages" -d "topicName=topic1"
-4. Failure Detection
-   Goal: Ensure failed nodes are detected, and replicas are used.
+4. **Step 4: Subscribe to Topics**
+   - Use `POST /peer/subscribe` to subscribe a peer to a topic.
+   - Example:
+       ```bash
+       curl -X POST http://localhost:8080/peer/subscribe -H "Content-Type: application/json" -d '{"topicName": "topic1"}'
+       ```
 
-Steps:
+5. **Step 5: Pull Messages**
+   - Use `GET /peer/pullMessages` to retrieve the messages from the subscribed topic.
+   - Example:
+       ```bash
+       curl -X GET "http://localhost:8080/peer/pullMessages?topicName=topic1"
+       ```
 
-Fail a node:
-bash
-Copy code
-curl -X POST "http://localhost:8080/peer/FailNode" -d "nodeName=node2"
-Check the node’s status:
-bash
-Copy code
-curl -X GET "http://localhost:8080/peer/CheckNodeStatus" -d "nodeName=node2"
-View available replicas for the failed node:
-bash
-Copy code
-curl -X GET "http://localhost:8080/peer/ViewReplicas" -d "nodeName=node2"
-This testing flow ensures all functionalities (replicated topics, dynamic topology, and failure handling) are verified step-by-step. Let me know if you need further clarification!
+6. **Step 6: Create Replica for Topic**
+   - Use `POST /peer/createReplica` to create replicas of a topic.
+   - Example:
+       ```bash
+       curl -X POST http://localhost:8080/peer/createReplica -H "Content-Type: application/json" -d '{"topicName": "topic1"}'
+       ```
 
-java -jar p2phypercubereplica-1.0-SNAPSHOT.jar --server.port=8080
+7. **Step 7: View Replica**
+   - Use `GET /peer/viewReplica` to view the details of the created replica.
+   - Example:
+       ```bash
+       curl -X GET "http://localhost:8080/peer/viewReplica?replicaId=topic1_replica"
+       ```
 
+8. **Step 8: Simulate Node Failure**
+   - Use `POST /peer/failNode` to simulate a node failure.
+   - Example:
+       ```bash
+       curl -X POST "http://localhost:8080/peer/failNode?nodeId=node1"
+       ```
 
+9. **Step 9: Check Node Status**
+   - Use `GET /peer/checkNodeStatus` to check the status of a node (whether it's active or failed).
+   - Example:
+       ```bash
+       curl -X GET "http://localhost:8080/peer/checkNodeStatus?nodeId=node1"
+       ```
 
+10. **Step 10: View Event Logs**
+   - Use `GET /peer/eventLogs` to retrieve the event logs and confirm the actions taken (e.g., node failure, topic creation, etc.).
+   - Example:
+       ```bash
+       curl -X GET http://localhost:8080/peer/eventLogs
+       ```
 
+---
 
+### Additional Considerations
+
+- **Error Handling**: Be sure to test edge cases, such as:
+   - Trying to unregister a non-existing peer.
+   - Failing to create a topic if the peer is down.
+   - Verifying if the correct replicas are returned after node failures.
+
+By following this flow, you can test the entire system from peer registration to handling failures and managing topic replication effectively.

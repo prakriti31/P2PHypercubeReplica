@@ -1,4 +1,4 @@
-package com.example.p2phypercubereplica.model;
+package com.example.p2phypercubereplica.peer;
 
 public class PeerNode {
     private String id;
@@ -6,7 +6,7 @@ public class PeerNode {
 
     public PeerNode(String id) {
         this.id = id;
-        this.isActive = true;
+        this.isActive = true; // Initially active
     }
 
     public String getId() {
@@ -27,6 +27,6 @@ public class PeerNode {
 
     @Override
     public String toString() {
-        return "PeerNode{id='" + id + "', isActive=" + isActive + '}';
+        return "PeerNode{id='" + id + "', isActive=" + isActive + "}";
     }
 }

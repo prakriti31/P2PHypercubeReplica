@@ -1,4 +1,4 @@
-package com.example.p2phypercubereplica.model;
+package com.example.p2phypercubereplica.peer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +30,6 @@ public class Topic {
 
     @Override
     public String toString() {
-        return "Topic{name='" + name + "', messages=" + messages + '}';
+        return "Topic{name='" + name + "', messages=" + messages + "}";
     }
 }
