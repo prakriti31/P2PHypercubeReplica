@@ -1,5 +1,35 @@
 # Replicated Topics and Dynamic Topology Configuration
 
+
+# Index
+
+- **Overview** - Page 1
+- **Features** - Page 2
+  - **Replicated Topics** - Page 2
+    - Performance Optimization - Page 2
+    - Fault Tolerance - Page 3
+  - **Dynamic Topology Configuration** - Page 4
+  - **Simultaneous Handling of Multiple Requests** - Page 5
+- **Key Considerations** - Page 6
+  - Latency and Replication Overhead - Page 6
+  - Consistency Models - Page 7
+  - Node Failures - Page 7
+- **Implementation Requirements** - Page 8
+  - Simultaneous Requests - Page 8
+  - Replicated Topic Management - Page 9
+  - Node Failure and Recovery - Page 9
+- **Conclusion** - Page 10
+- **Instructions to Build and Run the Project** - Page 11
+  - Prerequisites - Page 11
+  - Steps to Build and Run the Project - Page 12
+    - Build the Project - Page 12
+    - Run the Project on Different Ports - Page 13
+- **cURL Commands for Each API** - Page 14
+- **Flow to Hit the APIs and Verify All Flows** - Page 15
+- **Scenarios Where System is Faster than PA3 Code** - Page 16
+- **Curiosities about Consistency Models in Distributed Systems** - Page 17
+
+
 ## Overview
 
 In this project, we build upon the concepts implemented in **PA3** to add new features aimed at enhancing the system's **performance optimization** and **fault tolerance**. The key additions include:
