@@ -72,6 +72,71 @@ This project enhances the **fault tolerance** and **performance optimization** o
 
 The successful implementation of these features will significantly improve the system’s scalability, reliability, and responsiveness in a real-world distributed environment.
 
+Here’s an **instruction file** you can use to run the project. Save it as a `README.md` or a plain text file, as needed.
+
+---
+
+# Instructions to Build and Run the Project
+
+## Prerequisites
+Ensure you have the following installed on your system:
+- **Java Development Kit (JDK) 8 or higher**
+- **Maven** (Apache Maven 3.6.3 or higher is recommended)
+
+---
+
+## Steps to Build and Run the Project
+
+### 1. Build the Project
+Navigate to the root directory of the project where the `pom.xml` file is located and run the following command:
+
+```bash
+mvn clean install
+```
+
+This command will:
+- Clean any previous build files.
+- Download all dependencies specified in the `pom.xml` file.
+- Package the project into a JAR file located in the `target` directory.
+
+### 2. Run the Project on Different Ports
+After building the project, navigate to the `target` directory:
+
+```bash
+cd target
+```
+
+Run the application using the following commands for each port (8080 to 8087):
+
+#### Example for Port 8080:
+```bash
+java -jar p2phypercubereplica-1.0-SNAPSHOT.jar --server.port=8080
+```
+
+Repeat the above command for each port, replacing `8080` with the desired port (e.g., `8081`, `8082`, ..., `8087`).
+
+#### Full List of Commands:
+```bash
+java -jar p2phypercubereplica-1.0-SNAPSHOT.jar --server.port=8080
+java -jar p2phypercubereplica-1.0-SNAPSHOT.jar --server.port=8081
+java -jar p2phypercubereplica-1.0-SNAPSHOT.jar --server.port=8082
+java -jar p2phypercubereplica-1.0-SNAPSHOT.jar --server.port=8083
+java -jar p2phypercubereplica-1.0-SNAPSHOT.jar --server.port=8084
+java -jar p2phypercubereplica-1.0-SNAPSHOT.jar --server.port=8085
+java -jar p2phypercubereplica-1.0-SNAPSHOT.jar --server.port=8086
+java -jar p2phypercubereplica-1.0-SNAPSHOT.jar --server.port=8087
+```
+
+---
+
+## Notes
+- Each instance of the application running on a different port will act as a node in the system.
+- Ensure that no other services are using the specified ports (8080-8087).
+- If needed, adjust the ports in the above commands as required.
+
+--- 
+
+Save this as `README.md` or distribute it as a text file for easy reference!
 
 ### cURL Commands for Each API
 
